@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Traslados">
+<meta name="theme-color" content="#ffffff">
+<title>Traslados</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sol: #F59E0B;
+    --sol-light: #FEF3C7;
+    --sol-dark: #92400E;
+    --tatan: #3B82F6;
+    --tatan-light: #DBEAFE;
+    --tatan-dark: #1E3A8A;
+    --luci: #EC4899;
+    --luci-light: #FCE7F3;
+    --luci-dark: #831843;
+    --tito: #0F172A;
+    --ale: #7C3AED;
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --border: #E5E3DF;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --text-faint: #94A3B8;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* AUTH SCREEN */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: var(--bg);
+  }
+  .auth-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+  .auth-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .auth-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+  .auth-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: var(--shadow);
+  }
+  .auth-btn:active { transform: scale(0.98); }
+  .auth-btn.tito { border-color: var(--tito); background: var(--tito); color: white; }
+  .auth-btn.ale { border-color: var(--ale); background: var(--ale); color: white; }
+  .auth-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: white;
+  }
+  .auth-btn.kid { border-color: var(--border); background: var(--surface); color: var(--text); }
+
+  /* MAIN APP */
+  #app-screen { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px 6px 8px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .user-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* WEEK NAV */
+  .week-nav {
+    background: var(--surface);
+    padding: 0 16px 12px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .week-nav::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .day-tab.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  /* CONTENT */
+  .content { padding: 16px; flex: 1; padding-bottom: 100px; }
+
+  /* ADD BUTTON */
+  .add-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--text);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    transition: transform 0.15s;
+  }
+  .add-fab:active { transform: scale(0.93); }
+
+  /* TRIP CARD */
+  .trip-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .trip-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .child-tag {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .trip-type-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 3px 8px;
+    border-radius: 8px;
+  }
+  .trip-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-left: auto;
+  }
+  .trip-place {
+    padding: 0 14px 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .trip-assign {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .assign-btn {
+    flex: 1;
+    padding: 9px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .assign-btn.assigned-tito {
+    background: var(--tito);
+    border-color: var(--tito);
+    color: white;
+  }
+  .assign-btn.assigned-ale {
+    background: var(--ale);
+    border-color: var(--ale);
+    color: white;
+  }
+  .assign-btn:active { transform: scale(0.97); }
+  .trip-delete {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none;
+    color: var(--text-faint);
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-left: 8px;
+    transition: color 0.15s;
+  }
+  .trip-delete:active { color: #EF4444; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { font-size: 15px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-title {
+    font-size: 18px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .field-label {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .field-group { margin-bottom: 16px; }
+  .field-select, .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    -webkit-appearance: none;
+    outline: none;
+  }
+  .field-select:focus, .field-input:focus { border-color: var(--text); }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field-group { flex: 1; }
+  .modal-submit {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--text);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .modal-submit:active { opacity: 0.85; }
+  .modal-cancel {
+    width: 100%; padding: 13px;
+    border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; color: var(--text-muted);
+    cursor: pointer; margin-top: 8px;
+  }
+
+
+  /* RECURRING TOGGLE */
+  .recur-toggle { display: flex; gap: 8px; margin-bottom: 0; }
+  .recur-btn {
+    flex: 1; padding: 10px 6px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; text-align: center;
+  }
+  .recur-btn.active {
+    background: var(--text); border-color: var(--text); color: white;
+  }
+  .one-time-badge {
+    font-size: 10px; font-weight: 600;
+    background: #F1F5F9; color: #64748B;
+    padding: 2px 7px; border-radius: 8px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+
+  /* LOADING */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 500;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* CONFIG PANEL */
+  .config-section {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .config-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .config-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .config-input-row .field-input { flex: 1; padding: 10px 12px; font-size: 14px; }
+  .config-btn {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: var(--text); cursor: pointer;
+  }
+  .child-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 12px;
+    font-size: 13px; font-weight: 500;
+    margin: 3px;
+  }
+  .child-chip-del { background: none; border: none; cursor: pointer; font-size: 14px; color: inherit; opacity: 0.6; }
+
+  /* TABS */
+  .bottom-tabs {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 20px;
+    z-index: 100;
+  }
+  .tab-btn {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    padding: 4px 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px; font-weight: 500;
+    color: var(--text-faint);
+    transition: color 0.15s;
+  }
+  .tab-btn.active { color: var(--text); }
+  .tab-icon { font-size: 20px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Firebase offline badge */
+  .offline-badge {
+    font-size: 11px;
+    background: #FEF3C7;
+    color: #92400E;
+    padding: 3px 8px;
+    border-radius: 8px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div>cargando...</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">fam · traslados</div>
+  <div class="auth-title">¿Quién eres?</div>
+  <div class="auth-sub">Selecciona tu perfil para continuar</div>
+  <button class="auth-btn tito" onclick="login('tito')">
+    <div class="auth-avatar" style="background:#ffffff22">T</div>
+    Tito
+  </button>
+  <button class="auth-btn ale" onclick="login('ale')">
+    <div class="auth-avatar" style="background:#ffffff22">A</div>
+    Ale
+  </button>
+  <div style="width:100%;max-width:320px;text-align:left;font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em;margin:8px 0 4px">Hijos</div>
+  <button class="auth-btn kid" onclick="login('sol')">
+    <div class="auth-avatar" style="background:#F59E0B">S</div>
+    Sol
+  </button>
+  <button class="auth-btn kid" onclick="login('tatan')">
+    <div class="auth-avatar" style="background:#3B82F6">T</div>
+    Tatan
+  </button>
+  <button class="auth-btn kid" onclick="login('luci')">
+    <div class="auth-avatar" style="background:#EC4899">L</div>
+    Luci
+  </button>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-title">traslados</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="offline-badge" id="offline-badge">sin conexión</span>
+      <div class="user-badge" id="user-badge" onclick="logout()">
+        <div class="dot" id="user-dot"></div>
+        <span id="user-name-label"></span>
+        <span style="font-size:11px;color:var(--text-faint)">salir</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEK TABS -->
+  <div class="week-nav" id="week-nav"></div>
+
+  <!-- VIEWS -->
+  <div class="content">
+    <div id="view-schedule" class="view active"></div>
+    <div id="view-config" class="view">
+      <div class="config-section">
+        <div class="config-title">Hijos</div>
+        <div id="children-list"></div>
+        <div class="config-input-row">
+          <input class="field-input" id="new-child-name" placeholder="Nombre del hijo" />
+          <input class="field-input" id="new-child-color" type="color" style="width:44px;padding:4px;cursor:pointer;" value="#F59E0B" />
+          <button class="config-btn" onclick="addChild()">+ Agregar</button>
+        </div>
+      </div>
+      <div class="config-section">
+        <div class="config-title">Lugares frecuentes</div>
+        <div id="places-list"></div>
+        <div class="config-input-row">
+          <input class="field-input" id="new-place" placeholder="Ej: Colegio San Ignacio" />
+          <button class="config-btn" onclick="addPlace()">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM TABS -->
+  <div class="bottom-tabs">
+    <button class="tab-btn active" id="tab-schedule" onclick="switchView('schedule')">
+      <span class="tab-icon">📅</span>semana
+    </button>
+    <button class="tab-btn" id="tab-config" onclick="switchView('config')">
+      <span class="tab-icon">⚙️</span>ajustes
+    </button>
+  </div>
+
+  <!-- FAB -->
+  <button class="add-fab" onclick="openAddModal()" id="add-fab">+</button>
+
+</div>
+
+<!-- ADD TRIP MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Agregar traslado</div>
+    <div class="field-group">
+      <div class="field-label">Hijo</div>
+      <select class="field-select" id="f-child"></select>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label">Tipo</div>
+        <select class="field-select" id="f-type">
+          <option value="llevar">→ Llevar</option>
+          <option value="buscar">← Buscar</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Hora</div>
+        <input class="field-input" type="time" id="f-time" value="08:00" />
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Lugar</div>
+      <input class="field-input" type="text" id="f-place" placeholder="Ej: Colegio San Ignacio" list="places-datalist" />
+      <datalist id="places-datalist"></datalist>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Nota (opcional)</div>
+      <input class="field-input" type="text" id="f-note" placeholder="Ej: llevar colación" />
+    </div>
+    <div class="field-group">
+      <div class="field-label">Frecuencia</div>
+      <div class="recur-toggle">
+        <button class="recur-btn active" id="recur-fixed" onclick="setRecur('fixed')">🔁 Siempre</button>
+        <button class="recur-btn" id="recur-week" onclick="setRecur('week')">📅 Esta semana</button>
+        <button class="recur-btn" id="recur-once" onclick="setRecur('once')">🗓 Fecha exacta</button>
+      </div>
+    </div>
+    <div class="field-group" id="date-picker-group" style="display:none">
+      <div class="field-label">Fecha</div>
+      <input class="field-input" type="date" id="f-date" />
+    </div>
+    <button class="modal-submit" onclick="saveTrip()">Guardar traslado</button>
+    <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, onValue, remove, push, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ──────────────────────────────────────────────
+// 🔥 REEMPLAZA ESTO CON TU CONFIG DE FIREBASE
+// ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+// ──────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window._db = db;
+window._ref = ref;
+window._set = set;
+window._onValue = onValue;
+window._remove = remove;
+window._push = push;
+window._update = update;
+
+// Estado
+let currentUser = localStorage.getItem('traslados_user') || null;
+let currentDay = null;
+let fixedTrips = {};
+let onetimeTrips = {};
+let weekAssignments = {};
+let children = [];
+let places = [];
+let addingForDay = null;
+let recurMode = 'fixed'; // 'fixed' | 'week' | 'once'
+
+const DAYS = ['lunes','martes','miércoles','jueves','viernes'];
+const DAY_KEYS = ['lun','mar','mie','jue','vie'];
+
+function getWeekKey() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+  return monday.toISOString().slice(0,10);
+}
+const weekKey = getWeekKey();
+
+function getWeekKeyForDate(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().slice(0,10);
+}
+
+// Listen to Firebase
+function startListening() {
+  onValue(ref(db, 'assignments/' + weekKey), snap => {
+    weekAssignments = snap.val() || {};
+    renderSchedule();
+  });
+  onValue(ref(db, 'fixed_trips'), snap => {
+    fixedTrips = snap.val() || {};
+    renderSchedule();
+  });
+  // One-time trips for this week only
+  onValue(ref(db, 'onetime_trips/' + weekKey), snap => {
+    onetimeTrips = snap.val() || {};
+    renderSchedule();
+  });
+  // Migrate old trips from previous version
+  migrateOldTrips();
+  onValue(ref(db, 'config/children'), snap => {
+    children = snap.val() || [
+      { id: 'sol', name: 'Sol', color: '#F59E0B', light: '#FEF3C7', dark: '#92400E' },
+      { id: 'tatan', name: 'Tatan', color: '#3B82F6', light: '#DBEAFE', dark: '#1E3A8A' },
+      { id: 'luci', name: 'Luci', color: '#EC4899', light: '#FCE7F3', dark: '#831843' },
+    ];
+    renderChildrenConfig();
+    populateChildSelect();
+  });
+  onValue(ref(db, 'config/places'), snap => {
+    places = snap.val() || [];
+    renderPlacesConfig();
+    populatePlacesDatalist();
+  });
+}
+
+// LOGIN
+window.login = function(user) {
+  currentUser = user;
+  localStorage.setItem('traslados_user', user);
+  showApp();
+};
+window.logout = function() {
+  if(!confirm('¿Salir?')) return;
+  localStorage.removeItem('traslados_user');
+  currentUser = null;
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+};
+
+const KIDS = ['sol','tatan','luci'];
+function isKid(u) { return KIDS.includes(u); }
+function getUserName(u) {
+  if (u === 'ale') return 'Ale';
+  if (u === 'tito') return 'Tito';
+  if (u === 'sol') return 'Sol';
+  if (u === 'tatan') return 'Tatan';
+  if (u === 'luci') return 'Luci';
+  return u;
+}
+function getUserColor(u) {
+  if (u === 'ale') return '#7C3AED';
+  if (u === 'tito') return '#0F172A';
+  if (u === 'sol') return '#F59E0B';
+  if (u === 'tatan') return '#3B82F6';
+  if (u === 'luci') return '#EC4899';
+  return '#888';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.flexDirection = 'column';
+  document.getElementById('user-name-label').textContent = getUserName(currentUser);
+  document.getElementById('user-dot').style.background = getUserColor(currentUser);
+  // Hide config tab and FAB for kids (they can add one-time trips via a simpler flow)
+  if (isKid(currentUser)) {
+    document.getElementById('tab-config').style.display = 'none';
+  } else {
+    document.getElementById('tab-config').style.display = 'flex';
+  }
+  // current day
+  const today = new Date().getDay();
+  const todayIdx = today >= 1 && today <= 5 ? today - 1 : 0;
+  currentDay = DAY_KEYS[todayIdx];
+  buildWeekNav();
+  startListening();
+}
+
+// WEEK NAV
+function buildWeekNav() {
+  const nav = document.getElementById('week-nav');
+  nav.innerHTML = '';
+  const today = new Date().getDay();
+  DAYS.forEach((d, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (DAY_KEYS[i] === currentDay ? ' active' : '');
+    const isToday = (today >= 1 && today <= 5) && (today - 1 === i);
+    btn.textContent = d.charAt(0).toUpperCase() + d.slice(1,3) + (isToday ? ' ·' : '');
+    btn.onclick = () => {
+      currentDay = DAY_KEYS[i];
+      document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderSchedule();
+    };
+    nav.appendChild(btn);
+  });
+}
+
+// RENDER SCHEDULE
+function renderSchedule() {
+  const container = document.getElementById('view-schedule');
+  const dayFixed = fixedTrips[currentDay] || {};
+  const dayOnetime = onetimeTrips[currentDay] || {};
+
+  // Merge both sources, tagging each with its type
+  const allEntries = [
+    ...Object.entries(dayFixed).map(([k,v]) => [k, {...v, _src:'fixed'}]),
+    ...Object.entries(dayOnetime).map(([k,v]) => [k, {...v, _src:'onetime'}]),
+  ].sort((a,b) => (a[1].time||'').localeCompare(b[1].time||''));
+
+  if (allEntries.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-text">Sin traslados este día.<br>Toca + para agregar.</div></div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  allEntries.forEach(([k, t]) => {
+    const child = children.find(c => c.id === t.childId) || { name: t.childId, color: '#888', light: '#eee', dark: '#333' };
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+
+    const assignedUser = (weekAssignments[currentDay] && weekAssignments[currentDay][k]) || null;
+    const isAssignedToMe = assignedUser === currentUser;
+    const isAssignedToOther = assignedUser && assignedUser !== currentUser;
+    const otherName = assignedUser === 'ale' ? 'Ale' : 'Tito';
+    const isOnetime = t._src === 'onetime';
+    const dateLabel = t.exactDate ? formatDate(t.exactDate) : null;
+
+    card.innerHTML = `
+      <div class="trip-header">
+        <span class="child-tag" style="background:${child.light};color:${child.dark}">${child.name}</span>
+        <span class="trip-type-badge">${t.type === 'llevar' ? '→ llevar' : '← buscar'}</span>
+        ${isOnetime ? '<span class="one-time-badge">' + (dateLabel || 'esta semana') + '</span>' : ''}
+        <span class="trip-time">${t.time}</span>
+      </div>
+      <div class="trip-place">📍 ${t.place}</div>
+      ${t.note ? `<div style="padding:0 14px 10px;font-size:12px;color:var(--text-faint)">💬 ${t.note}</div>` : ''}
+      <div class="trip-assign">
+        ${!isKid(currentUser) ? `
+        <button class="assign-btn ${isAssignedToMe ? 'assigned-'+currentUser : isAssignedToOther ? 'assigned-'+assignedUser : ''}"
+          onclick="toggleAssign('${currentDay}','${k}','${assignedUser||''}')">
+          ${isAssignedToMe ? '✓ Yo voy' : isAssignedToOther ? otherName + ' va' : 'Sin asignar'}
+        </button>
+        <button class="trip-delete" onclick="deleteTrip('${currentDay}','${k}','${t._src}')">✕</button>
+        ` : `
+        <div style="flex:1;padding:6px 8px;font-size:13px;color:${assignedUser ? getUserColor(assignedUser) : 'var(--text-faint)'}">
+          ${assignedUser ? '🚗 ' + getUserName(assignedUser) + ' te lleva' : 'Sin asignar aún'}
+        </div>
+        `}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// TOGGLE ASSIGN — stored per week, resets each Monday
+window.toggleAssign = function(day, tripKey, current) {
+  const path = 'assignments/' + weekKey + '/' + day + '/' + tripKey;
+  if (current === currentUser) {
+    set(ref(db, path), null);
+    showToast('Turno liberado');
+  } else if (current && current !== currentUser) {
+    showToast('Ya está asignado a ' + (current === 'ale' ? 'Ale' : 'Tito'));
+  } else {
+    set(ref(db, path), currentUser);
+    showToast('¡Listo! Tú vas 🚗');
+  }
+};
+
+// DELETE TRIP
+window.deleteTrip = function(day, tripKey, src) {
+  const msg = src === 'fixed' ? '¿Eliminar este traslado de todas las semanas?' : '¿Eliminar este traslado?';
+  if (!confirm(msg)) return;
+  const path = src === 'fixed' ? 'fixed_trips/' + day + '/' + tripKey : 'onetime_trips/' + weekKey + '/' + day + '/' + tripKey;
+  remove(ref(db, path));
+  showToast('Traslado eliminado');
+};
+
+// MODAL
+window.openAddModal = function() {
+  addingForDay = currentDay;
+  populateChildSelect();
+  document.getElementById('modal-overlay').classList.add('open');
+};
+window.closeModal = function(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+};
+window.saveTrip = function() {
+  const childId = document.getElementById('f-child').value;
+  const type = document.getElementById('f-type').value;
+  const time = document.getElementById('f-time').value;
+  const place = document.getElementById('f-place').value.trim();
+  const note = document.getElementById('f-note').value.trim();
+  if (!childId || !time || !place) { showToast('Completa todos los campos'); return; }
+
+  let path, toastMsg;
+  if (recurMode === 'fixed') {
+    path = 'fixed_trips/' + addingForDay;
+    toastMsg = 'Traslado fijo agregado 🔁';
+  } else if (recurMode === 'week') {
+    path = 'onetime_trips/' + weekKey + '/' + addingForDay;
+    toastMsg = 'Agregado para esta semana 📅';
+  } else {
+    // once — use exact date
+    const dateVal = document.getElementById('f-date').value;
+    if (!dateVal) { showToast('Elige una fecha'); return; }
+    // Get day of week from date
+    const d = new Date(dateVal + 'T12:00:00');
+    const dayIdx = d.getDay(); // 0=sun, 1=mon...
+    if (dayIdx === 0 || dayIdx === 6) { showToast('Solo días de semana (lun-vie)'); return; }
+    const dayKey = DAY_KEYS[dayIdx - 1];
+    // Use the date itself as the week key for once-off trips
+    const dateWeekKey = getWeekKeyForDate(d);
+    path = 'onetime_trips/' + dateWeekKey + '/' + dayKey;
+    toastMsg = 'Evento único agregado 🗓';
+    const newRef = push(ref(db, path));
+    set(newRef, { childId, type, time, place, note: note || null, createdBy: currentUser, exactDate: dateVal });
+    document.getElementById('f-place').value = '';
+    document.getElementById('f-note').value = '';
+    closeModal();
+    showToast(toastMsg);
+    return;
+  }
+  const newRef = push(ref(db, path));
+  set(newRef, { childId, type, time, place, note: note || null, createdBy: currentUser });
+  document.getElementById('f-place').value = '';
+  document.getElementById('f-note').value = '';
+  closeModal();
+  showToast(toastMsg);
+};
+
+function populateChildSelect() {
+  const sel = document.getElementById('f-child');
+  sel.innerHTML = children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+function populatePlacesDatalist() {
+  const dl = document.getElementById('places-datalist');
+  dl.innerHTML = places.map(p => `<option value="${p}">`).join('');
+}
+
+// CONFIG
+window.addChild = function() {
+  const name = document.getElementById('new-child-name').value.trim();
+  const color = document.getElementById('new-child-color').value;
+  if (!name) return;
+  const id = name.toLowerCase().replace(/\s+/g,'-');
+  const newChildren = [...children, { id, name, color, light: color+'22', dark: color }];
+  set(ref(db, 'config/children'), newChildren);
+  document.getElementById('new-child-name').value = '';
+};
+window.removeChild = function(id) {
+  const updated = children.filter(c => c.id !== id);
+  set(ref(db, 'config/children'), updated);
+};
+window.addPlace = function() {
+  const p = document.getElementById('new-place').value.trim();
+  if (!p) return;
+  const updated = [...places, p];
+  set(ref(db, 'config/places'), updated);
+  document.getElementById('new-place').value = '';
+};
+window.removePlace = function(i) {
+  const updated = places.filter((_,idx) => idx !== i);
+  set(ref(db, 'config/places'), updated);
+};
+
+function renderChildrenConfig() {
+  const el = document.getElementById('children-list');
+  el.innerHTML = children.map(c => `
+    <span class="child-chip" style="background:${c.light||c.color+'22'};color:${c.dark||c.color}">
+      ${c.name}
+      <button class="child-chip-del" onclick="removeChild('${c.id}')">✕</button>
+    </span>
+  `).join('') + '<br><br>';
+}
+function renderPlacesConfig() {
+  const el = document.getElementById('places-list');
+  el.innerHTML = places.map((p,i) => `
+    <span class="child-chip" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">
+      ${p}
+      <button class="child-chip-del" onclick="removePlace(${i})">✕</button>
+    </span>
+  `).join('') + (places.length ? '<br><br>' : '');
+}
+
+// VIEW SWITCH
+window.switchView = function(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + view).classList.add('active');
+  document.getElementById('add-fab').style.display = view === 'schedule' ? 'flex' : 'none';
+  // hide week nav on config
+  document.getElementById('week-nav').style.display = view === 'schedule' ? 'flex' : 'none';
+};
+
+// TOAST
+window.showToast = function(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+};
+
+// SET RECUR MODE: 'fixed' | 'week' | 'once'
+window.setRecur = function(val) {
+  recurMode = val;
+  ['fixed','week','once'].forEach(id => {
+    document.getElementById('recur-' + id).className = 'recur-btn' + (val === id ? ' active' : '');
+  });
+  document.getElementById('date-picker-group').style.display = val === 'once' ? 'block' : 'none';
+};
+
+window.openAddModal = function() {
+  const today = new Date();
+  document.getElementById('f-date').value = today.toISOString().slice(0,10);
+  addingForDay = currentDay;
+  populateChildSelect();
+  // Kids can only add one-time trips
+  if (isKid(currentUser)) {
+    recurMode = 'once';
+    setRecur('once');
+    document.getElementById('recur-fixed').style.display = 'none';
+    document.getElementById('recur-week').style.display = 'none';
+    // Pre-select their own child
+    const sel = document.getElementById('f-child');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === currentUser) { sel.selectedIndex = i; break; }
+    }
+  } else {
+    recurMode = 'fixed';
+    setRecur('fixed');
+    document.getElementById('recur-fixed').style.display = '';
+    document.getElementById('recur-week').style.display = '';
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+};
+
+// FORMAT DATE
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+}
+
+// MIGRATE OLD TRIPS (from previous app version trips/ path → fixed_trips/)
+async function migrateOldTrips() {
+  const alreadyMigrated = localStorage.getItem('migrated_v2');
+  if (alreadyMigrated) return;
+  const snap = await new Promise(res => {
+    const unsub = onValue(ref(db, 'trips'), s => { unsub(); res(s); });
+  });
+  const oldTrips = snap.val();
+  if (!oldTrips) { localStorage.setItem('migrated_v2', '1'); return; }
+  // Copy all old trips to fixed_trips
+  const DAY_MAP = {'lun':'lun','mar':'mar','mie':'mie','jue':'jue','vie':'vie'};
+  for (const [weekK, days] of Object.entries(oldTrips)) {
+    for (const [day, dayTrips] of Object.entries(days)) {
+      if (!DAY_MAP[day]) continue;
+      for (const [k, t] of Object.entries(dayTrips)) {
+        const newRef = push(ref(db, 'fixed_trips/' + day));
+        await set(newRef, {
+          childId: t.childId,
+          type: t.type,
+          time: t.time,
+          place: t.place,
+          note: t.note || null,
+          createdBy: t.createdBy || 'migrated'
+        });
+      }
+    }
+  }
+  localStorage.setItem('migrated_v2', '1');
+  showToast('Traslados anteriores migrados ✓');
+}
+
+// INIT
+document.getElementById('loading').style.display = 'none';
+if (currentUser) {
+  showApp();
+} else {
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+// Connectivity
+window.addEventListener('online', () => document.getElementById('offline-badge').style.display = 'none');
+window.addEventListener('offline', () => document.getElementById('offline-badge').style.display = 'inline');
+</script>
+
+</body>
+</html>
