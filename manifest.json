@@ -2,12 +2,12 @@
   "name": "Traslados Fam",
   "short_name": "Traslados",
   "description": "Horario de traslados familiar",
-  "start_url": "/index.html",
+  "start_url": "/Traslados/index.html",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#0F172A",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "/Traslados/",
   "icons": [
     {
       "src": "icon-192.png",
