@@ -575,10 +575,10 @@
   <!-- BOTTOM TABS -->
   <div class="bottom-tabs">
     <button class="tab-btn active" id="tab-schedule" onclick="switchView('schedule')">
-      <span class="tab-icon">📅</span>Semana
+      <span class="tab-icon">📅</span>semana
     </button>
     <button class="tab-btn" id="tab-config" onclick="switchView('config')">
-      <span class="tab-icon">⚙️</span>Ajustes
+      <span class="tab-icon">⚙️</span>ajustes
     </button>
   </div>
 
@@ -641,6 +641,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, onValue, remove, push, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 
 // ──────────────────────────────────────────────
 // 🔥 REEMPLAZA ESTO CON TU CONFIG DE FIREBASE
@@ -659,6 +660,28 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const messaging = getMessaging(app);
+
+// 🔑 REEMPLAZA CON TU VAPID KEY (Firebase Console → Cloud Messaging → Web Push certificates)
+const VAPID_KEY = 'BGEKIbfMJYUxPvERcz2dVy31fvIW8mKA2_gNXSttHYjEAW81sBoAzV5s0G9n1HeQHpyug2KR-EZ2XcczlSWc04g';
+
+async function setupNotifications(user) {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    if (token) {
+      await set(ref(db, 'fcm_tokens/' + user + '/' + token.slice(-20)), token);
+    }
+    // Handle foreground messages
+    onMessage(messaging, (payload) => {
+      const { title, body } = payload.notification;
+      showToast(title + ': ' + body);
+    });
+  } catch (e) {
+    console.log('Notifications not available:', e.message);
+  }
+}
 
 window._db = db;
 window._ref = ref;
@@ -777,6 +800,8 @@ function showApp() {
   } else {
     document.getElementById('tab-config').style.display = 'flex';
   }
+  // Setup push notifications
+  setupNotifications(currentUser);
   // current day
   const today = new Date().getDay();
   const todayIdx = today >= 1 && today <= 5 ? today - 1 : 0;
@@ -1053,16 +1078,22 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 }
 
-// MIGRATE OLD TRIPS (from previous app version trips/ path → fixed_trips/)
+// MIGRATE OLD TRIPS — checks Firebase flag, not localStorage
 async function migrateOldTrips() {
-  const alreadyMigrated = localStorage.getItem('migrated_v2');
-  if (alreadyMigrated) return;
+  // Check if already migrated in Firebase itself
+  const flagSnap = await new Promise(res => {
+    const unsub = onValue(ref(db, 'meta/migrated_v2'), s => { unsub(); res(s); });
+  });
+  if (flagSnap.val()) return;
+
   const snap = await new Promise(res => {
     const unsub = onValue(ref(db, 'trips'), s => { unsub(); res(s); });
   });
   const oldTrips = snap.val();
-  if (!oldTrips) { localStorage.setItem('migrated_v2', '1'); return; }
-  // Copy all old trips to fixed_trips
+  // Mark as migrated regardless (even if no old trips)
+  await set(ref(db, 'meta/migrated_v2'), true);
+  if (!oldTrips) return;
+
   const DAY_MAP = {'lun':'lun','mar':'mar','mie':'mie','jue':'jue','vie':'vie'};
   for (const [weekK, days] of Object.entries(oldTrips)) {
     for (const [day, dayTrips] of Object.entries(days)) {
@@ -1080,7 +1111,6 @@ async function migrateOldTrips() {
       }
     }
   }
-  localStorage.setItem('migrated_v2', '1');
   showToast('Traslados anteriores migrados ✓');
 }
 
