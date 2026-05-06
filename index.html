@@ -669,9 +669,12 @@ async function setupNotifications(user) {
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return;
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    // Register service worker explicitly with correct path
+    const swReg = await navigator.serviceWorker.register('/Traslados/firebase-messaging-sw.js');
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     if (token) {
       await set(ref(db, 'fcm_tokens/' + user + '/' + token.slice(-20)), token);
+      console.log('FCM token saved:', token.slice(-10));
     }
     // Handle foreground messages
     onMessage(messaging, (payload) => {
@@ -679,7 +682,7 @@ async function setupNotifications(user) {
       showToast(title + ': ' + body);
     });
   } catch (e) {
-    console.log('Notifications not available:', e.message);
+    console.log('Notifications error:', e.message);
   }
 }
 
@@ -801,23 +804,13 @@ function showApp() {
     document.getElementById('tab-config').style.display = 'flex';
   }
   // Setup push notifications
-  async function setupNotifications(user) {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
-    const swReg = await navigator.serviceWorker.register('/Traslados/firebase-messaging-sw.js');
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-    if (token) {
-      await set(ref(db, 'fcm_tokens/' + user + '/' + token.slice(-20)), token);
-    }
-    onMessage(messaging, (payload) => {
-      const { title, body } = payload.notification;
-      showToast(title + ': ' + body);
-    });
-  } catch (e) {
-    console.log('Notifications error:', e.message);
-  }
-
+  setupNotifications(currentUser);
+  // current day
+  const today = new Date().getDay();
+  const todayIdx = today >= 1 && today <= 5 ? today - 1 : 0;
+  currentDay = DAY_KEYS[todayIdx];
+  buildWeekNav();
+  startListening();
 }
 
 // WEEK NAV
@@ -1139,4 +1132,3 @@ window.addEventListener('offline', () => document.getElementById('offline-badge'
 
 </body>
 </html>
-
